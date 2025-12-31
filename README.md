@@ -98,16 +98,6 @@ slides and blog articles of these talks are available at [RustSBI/slides](https:
    RustSBI in it!
 3. If there is a bug in RustSBI project itself, fire an issue or pull request to let us know!
 
-## Sponsors
-
-The RustSBI project is sponsored by multiple institutions, companies, and individuals.
-
-Individual sponsors (by order of donation):
-
-| <img src="https://avatars.githubusercontent.com/u/62325246?v=4" width="150" height="150" /> | <img src="https://avatars.githubusercontent.com/u/107762234?v=4" width="150" height="150" /> | <img src="https://avatars.githubusercontent.com/u/54400362?v=4" width="150" height="150" /> |
-|---|---|---|
-| Chao Liu<br/>([@zevorn](https://github.com/zevorn)) | Zhenchen Wang<br/>([@Plucky923](https://github.com/Plucky923/)) | Zongyao Chen<br/>([@chenzongyao200127](https://github.com/chenzongyao200127)) |
-
 ## License & Copyright
 
 This project is licensed under either of

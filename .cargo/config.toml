@@ -1,5 +1,15 @@
+# 根目录 .cargo/config.toml
 [alias]
 xtask = "run --package xtask --release --"
-prototyper = "xtask prototyper"
+prototyper = "xtask prototyper" 
 test-kernel = "xtask test"
 bench-kernel = "xtask bench"
+
+[build]
+target = "riscv64gc-unknown-none-elf"
+
+[target.riscv64gc-unknown-none-elf]
+rustflags = [
+    "-C", "link-arg=-Tlibrary/rustsbi/src/link.ld",
+    "-C", "link-arg=--no-dynamic-linker",
+]

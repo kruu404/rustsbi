@@ -101,50 +101,41 @@ impl Platform {
         self.ready.swap(true, Ordering::Release);
     }
 
-    fn init_sbi_console_and_logger(&mut self) {
+    fn sbi_find_and_init_console(&mut self, root: &serde_device_tree::buildin::Node) {
+        //  Get console device info
+        if let Some(stdout_path) = root.chosen_stdout_path() {
+            if let Some(node) = root.find(stdout_path) {
+                let info = get_compatible_and_range(&node);
+                if let Some((compatible, regs)) = info {
+                    for device_id in compatible.iter() {
+                        if UART16650U8_COMPATIBLE.contains(&device_id) {
+                            self.info.console = Some((regs.start, MachineConsoleType::Uart16550U8));
+                        }
+                        if UART16650U32_COMPATIBLE.contains(&device_id) {
+                            self.info.console =
+                                Some((regs.start, MachineConsoleType::Uart16550U32));
+                        }
+                        if UARTAXILITE_COMPATIBLE.contains(&device_id) {
+                            self.info.console = Some((regs.start, MachineConsoleType::UartAxiLite));
+                        }
+                        if UARTBFLB_COMPATIBLE.contains(&device_id) {
+                            self.info.console = Some((regs.start, MachineConsoleType::UartBflb));
+                        }
+                        if UARTSIFIVE_COMPATIBLE.contains(&device_id) {
+                            self.info.console = Some((regs.start, MachineConsoleType::UartSifive));
+                        }
+                        if UARTPL011_COMPATIBLE.contains(&device_id) {
+                            self.info.console = Some((regs.start, MachineConsoleType::UartPl011));
+                        }
+                    }
+                }
+            }
+        }
+
         // init console and logger
         self.sbi_console_init();
         logger::Logger::init().unwrap();
         info!("Hello RustSBI!");
-    }
-
-    fn sbi_find_and_init_console(&mut self, root: &serde_device_tree::buildin::Node) {
-        //  Get console device info
-        let Some(stdout_path) = root.chosen_stdout_path() else {
-            self.init_sbi_console_and_logger();
-            return;
-        };
-        let Some(node) = root.find(stdout_path) else {
-            self.init_sbi_console_and_logger();
-            return;
-        };
-        let Some((compatible, regs)) = get_compatible_and_range(&node) else {
-            self.init_sbi_console_and_logger();
-            return;
-        };
-
-        for device_id in compatible.iter() {
-            if UART16650U8_COMPATIBLE.contains(&device_id) {
-                self.info.console = Some((regs.start, MachineConsoleType::Uart16550U8));
-            }
-            if UART16650U32_COMPATIBLE.contains(&device_id) {
-                self.info.console = Some((regs.start, MachineConsoleType::Uart16550U32));
-            }
-            if UARTAXILITE_COMPATIBLE.contains(&device_id) {
-                self.info.console = Some((regs.start, MachineConsoleType::UartAxiLite));
-            }
-            if UARTBFLB_COMPATIBLE.contains(&device_id) {
-                self.info.console = Some((regs.start, MachineConsoleType::UartBflb));
-            }
-            if UARTSIFIVE_COMPATIBLE.contains(&device_id) {
-                self.info.console = Some((regs.start, MachineConsoleType::UartSifive));
-            }
-            if UARTPL011_COMPATIBLE.contains(&device_id) {
-                self.info.console = Some((regs.start, MachineConsoleType::UartPl011));
-            }
-        }
-
-        self.init_sbi_console_and_logger();
     }
 
     fn sbi_init_ipi_reset_hsm_rfence(&mut self, root: &serde_device_tree::buildin::Node) {
@@ -274,7 +265,9 @@ impl Platform {
             let cpu = cpu_iter.deserialize::<Cpu>();
             let hart_id = cpu.reg.iter().next().unwrap().0.start;
             if let Some(x) = cpu_list.get_mut(hart_id) {
-                *x = true;
+                unsafe {
+                    *x = CPU_PRIVILEGED_ENABLED[hart_id];
+                }
             } else {
                 error!(
                     "The maximum supported hart id is {}, but the hart id {} was obtained. Please check the config!",
@@ -284,14 +277,6 @@ impl Platform {
             }
         }
         self.info.cpu_enabled = Some(cpu_list);
-    }
-
-    pub fn sbi_cpu_init_with_feature(&mut self) {
-        for i in 0..NUM_HART_MAX {
-            if self.info.cpu_enabled.unwrap()[i] {
-                self.info.cpu_enabled.unwrap()[i] = unsafe { CPU_PRIVILEGED_ENABLED[i] };
-            }
-        }
     }
 
     fn sbi_console_init(&mut self) {

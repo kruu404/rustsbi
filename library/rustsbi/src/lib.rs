@@ -1,3 +1,4 @@
+#![no_std]
 //! A minimal RISC-V's SBI implementation library in Rust.
 //!
 //! *Note: If you are a user looking for binary distribution download for RustSBI, you may consider
@@ -537,8 +538,6 @@
 //! any hardware discovery methods, or use try-execute-trap method to detect any instructions or
 //! CSRs. If SBI is implemented in user level emulators, it may require to depend on operating
 //! system calls or use a signal-trap procedure to detect any RISC-V core features.
-
-#![no_std]
 
 mod console;
 mod cppc;
@@ -1125,6 +1124,7 @@ pub use sbi_spec::binary::{CounterMask, HartMask, Physical, SbiRet, SharedPtr};
 #[doc(inline)]
 pub use rustsbi_macros::RustSBI;
 
+
 pub use console::Console;
 pub use cppc::Cppc;
 pub use hsm::Hsm;
@@ -1157,3 +1157,25 @@ pub use traits::{
     _rustsbi_ipi_probe, _rustsbi_nacl_probe, _rustsbi_pmu_probe, _rustsbi_reset_probe,
     _rustsbi_sta_probe, _rustsbi_susp_probe, _rustsbi_timer_probe,
 };
+
+// 导出Virtio相关类型
+pub use virtio::blk::{VirtioBlk, BlkError, BlkDeviceInfo};
+// 导出内核加载器模块
+pub mod kernel_loader;
+pub mod virtio;
+pub mod kernel;
+
+// 引入陷阱处理模块
+pub mod trap;
+
+// 导出陷阱处理相关功能
+pub use trap::{trap_handler};
+
+// 重新导出常用类型
+pub use kernel::{
+    KernelLoader, ElfParser,BootConfig, 
+};
+pub use kernel_loader::{find_and_load_kernel, LoaderError};
+
+// 🆕 兼容性导出
+pub use kernel::KernelError;

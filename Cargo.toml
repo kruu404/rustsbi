@@ -32,7 +32,17 @@ edition = "2024"
 license = "MulanPSL-2.0 OR MIT"
 repository = "https://github.com/rustsbi/rustsbi"
 
+# 添加panic配置
+[workspace.dependencies]
+
+# 添加profile配置
+[profile.dev]
+opt-level = "z" 
+
 [profile.release]
 debug = true
+lto = true          # 链接时优化
+panic = "abort"     # 减少panic处理代码
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
